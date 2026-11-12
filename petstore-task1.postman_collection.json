@@ -1,0 +1,761 @@
+{
+  "info": {
+    "_postman_id": "17fd2157-e9ce-404c-9fc0-0766b997657d",
+    "name": "QA Take-Home Task 1 - Petstore API Test",
+    "description": "Task 1 (Manual API Test) of the QA take-home test. Test cases for POST /pet, GET /pet/findByStatus and DELETE /pet/{petId} on the public Swagger Petstore demo. Expected results are derived from https://petstore.swagger.io/v2/swagger.json (retrieved 12 Nov 2026). See test-cases.md for the test case document and report.md for the execution results.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://petstore.swagger.io/v2"
+    },
+    {
+      "key": "petName",
+      "value": ""
+    },
+    {
+      "key": "createdPetId",
+      "value": ""
+    },
+    {
+      "key": "deletePetName",
+      "value": ""
+    },
+    {
+      "key": "deletePetId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. POST /pet - Add a new pet",
+      "description": "Positive and negative test cases for creating a pet.",
+      "item": [
+        {
+          "name": "TC-POST-01 Create pet with valid data",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"petName\", \"QA Test Dog \" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-POST-01: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-POST-01: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"TC-POST-01: Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "pm.test(\"TC-POST-01: Response contains a new numeric pet id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json, \"response body\").to.have.property(\"id\");",
+                  "    pm.expect(json.id, \"pet id\").to.be.a(\"number\").and.to.be.above(0);",
+                  "    pm.collectionVariables.set(\"createdPetId\", json.id);",
+                  "});",
+                  "pm.test(\"TC-POST-01: Response echoes the submitted pet data\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.name).to.eql(pm.collectionVariables.get(\"petName\"));",
+                  "    pm.expect(json.status).to.eql(\"available\");",
+                  "    pm.expect(json.photoUrls).to.be.an(\"array\").that.is.not.empty;",
+                  "    pm.expect(json.category.name).to.eql(\"QA-Dogs\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/pet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet"
+              ]
+            },
+            "description": "Expected: 200 with created pet JSON (new id > 0, data echoed). Note: spec documents no success response for this endpoint.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{petName}}\",\n  \"category\": {\n    \"id\": 101,\n    \"name\": \"QA-Dogs\"\n  },\n  \"photoUrls\": [\n    \"https://example.com/pet/qa-dog.jpg\"\n  ],\n  \"tags\": [\n    {\n      \"id\": 1,\n      \"name\": \"qa-automation\"\n    }\n  ],\n  \"status\": \"available\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-POST-02 Create pet missing required name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-POST-02: Status code is 405\", function () {",
+                  "    pm.response.to.have.status(405);",
+                  "});",
+                  "pm.test(\"TC-POST-02: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/pet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet"
+              ]
+            },
+            "description": "Expected: 405 Invalid input - required field 'name' missing (spec).",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"photoUrls\": [\n    \"https://example.com/pet/no-name.jpg\"\n  ],\n  \"status\": \"available\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-POST-03 Create pet with invalid id type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-POST-03: Status code is 405\", function () {",
+                  "    pm.response.to.have.status(405);",
+                  "});",
+                  "pm.test(\"TC-POST-03: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/pet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet"
+              ]
+            },
+            "description": "Expected: 405 Invalid input - 'id' is a string instead of int64 (spec).",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"not-a-number\",\n  \"name\": \"QA Invalid ID Type\",\n  \"photoUrls\": [\n    \"https://example.com/pet/invalid-id.jpg\"\n  ],\n  \"status\": \"available\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-POST-04 Create pet with invalid status enum",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-POST-04: Status code is 405\", function () {",
+                  "    pm.response.to.have.status(405);",
+                  "});",
+                  "pm.test(\"TC-POST-04: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/pet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet"
+              ]
+            },
+            "description": "Expected: 405 Invalid input - 'status' outside enum available|pending|sold (spec).",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"QA Invalid Status\",\n  \"photoUrls\": [\n    \"https://example.com/pet/invalid-status.jpg\"\n  ],\n  \"status\": \"not-a-valid-status\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. GET /pet/findByStatus - Find pets by status",
+      "description": "Positive and negative test cases for filtering pets by status.",
+      "item": [
+        {
+          "name": "TC-GET-01 Find pets by status available",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-GET-01: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-GET-01: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"TC-GET-01: Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "pm.test(\"TC-GET-01: Response body is a non-empty JSON array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length, \"number of results\").to.be.above(0);",
+                  "});",
+                  "pm.test(\"TC-GET-01: Every result has status 'available'\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) { pm.expect(p.status, \"status of pet \" + p.id).to.eql(\"available\"); });",
+                  "});",
+                  "pm.test(\"TC-GET-01: Every result has id and name\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) {",
+                  "        pm.expect(p).to.have.property(\"id\");",
+                  "        pm.expect(p).to.have.property(\"name\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pet/findByStatus?status=available",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "findByStatus"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "available"
+                }
+              ]
+            },
+            "description": "Expected: 200, non-empty array, every item status = available (spec)."
+          }
+        },
+        {
+          "name": "TC-GET-02 Find pets by status pending",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-GET-02: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-GET-02: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"TC-GET-02: Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "pm.test(\"TC-GET-02: Response body is a non-empty JSON array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length, \"number of results\").to.be.above(0);",
+                  "});",
+                  "pm.test(\"TC-GET-02: Every result has status 'pending'\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) { pm.expect(p.status, \"status of pet \" + p.id).to.eql(\"pending\"); });",
+                  "});",
+                  "pm.test(\"TC-GET-02: Every result has id and name\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) {",
+                  "        pm.expect(p).to.have.property(\"id\");",
+                  "        pm.expect(p).to.have.property(\"name\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pet/findByStatus?status=pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "findByStatus"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            },
+            "description": "Expected: 200, non-empty array, every item status = pending (spec)."
+          }
+        },
+        {
+          "name": "TC-GET-03 Find pets by status sold",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-GET-03: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-GET-03: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"TC-GET-03: Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "pm.test(\"TC-GET-03: Response body is a non-empty JSON array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length, \"number of results\").to.be.above(0);",
+                  "});",
+                  "pm.test(\"TC-GET-03: Every result has status 'sold'\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) { pm.expect(p.status, \"status of pet \" + p.id).to.eql(\"sold\"); });",
+                  "});",
+                  "pm.test(\"TC-GET-03: Every result has id and name\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) {",
+                  "        pm.expect(p).to.have.property(\"id\");",
+                  "        pm.expect(p).to.have.property(\"name\");",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pet/findByStatus?status=sold",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "findByStatus"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "sold"
+                }
+              ]
+            },
+            "description": "Expected: 200, non-empty array, every item status = sold (spec)."
+          }
+        },
+        {
+          "name": "TC-GET-04 Find pets without status parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-GET-04: Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"TC-GET-04: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pet/findByStatus",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "findByStatus"
+              ]
+            },
+            "description": "Expected: 400 - 'status' is a required query parameter (spec)."
+          }
+        },
+        {
+          "name": "TC-GET-05 Find pets with invalid status value",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-GET-05: Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"TC-GET-05: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pet/findByStatus?status=not-a-valid-status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "findByStatus"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "not-a-valid-status"
+                }
+              ]
+            },
+            "description": "Expected: 400 Invalid status value (spec)."
+          }
+        },
+        {
+          "name": "TC-GET-06 Find pets with multiple status values",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-GET-06: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-GET-06: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"TC-GET-06: Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "pm.test(\"TC-GET-06: Response body is a non-empty JSON array\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an(\"array\");",
+                  "    pm.expect(json.length, \"number of results\").to.be.above(0);",
+                  "});",
+                  "pm.test(\"TC-GET-06: Every result has status 'available' or 'sold'\", function () {",
+                  "    const json = pm.response.json();",
+                  "    json.forEach(function (p) { pm.expect([\"available\", \"sold\"], \"status of pet \" + p.id).to.include(p.status); });",
+                  "});",
+                  "pm.test(\"TC-GET-06: Response contains both requested statuses\", function () {",
+                  "    const statuses = Array.from(new Set(pm.response.json().map(function (p) { return p.status; }))).sort();",
+                  "    pm.expect(statuses).to.eql([\"available\", \"sold\"]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pet/findByStatus?status=available&status=sold",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "findByStatus"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "available"
+                },
+                {
+                  "key": "status",
+                  "value": "sold"
+                }
+              ]
+            },
+            "description": "Expected: 200 with items having status available or sold, both values present (spec: collectionFormat multi)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. DELETE /pet/{petId} - Delete a pet by ID",
+      "description": "TC-DEL-00 is a setup request that creates the pet used by the delete cases, so this folder can run standalone.",
+      "item": [
+        {
+          "name": "TC-DEL-00 Setup create pet for delete tests",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"deletePetName\", \"QA Delete Target \" + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-DEL-00: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-DEL-00: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});",
+                  "pm.test(\"TC-DEL-00: Setup pet created and its id stored for delete tests\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.id, \"pet id\").to.be.a(\"number\").and.to.be.above(0);",
+                  "    pm.collectionVariables.set(\"deletePetId\", json.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{baseUrl}}/pet",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet"
+              ]
+            },
+            "description": "Setup: creates the pet that will be deleted. Expected: 200, stores deletePetId.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{deletePetName}}\",\n  \"photoUrls\": [\n    \"https://example.com/pet/delete-target.jpg\"\n  ],\n  \"status\": \"available\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "TC-DEL-01 Delete existing pet",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-DEL-01: Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"TC-DEL-01: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/pet/{{deletePetId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "{{deletePetId}}"
+              ]
+            },
+            "description": "Expected: 200 success. Note: spec documents no success response for this endpoint."
+          }
+        },
+        {
+          "name": "TC-DEL-02 Delete same pet again verify gone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-DEL-02: Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"TC-DEL-02: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/pet/{{deletePetId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "{{deletePetId}}"
+              ]
+            },
+            "description": "Expected: 404 Pet not found - pet was already deleted (spec)."
+          }
+        },
+        {
+          "name": "TC-DEL-03 Delete non-existent pet id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-DEL-03: Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"TC-DEL-03: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/pet/999999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "999999999"
+              ]
+            },
+            "description": "Expected: 404 Pet not found (spec)."
+          }
+        },
+        {
+          "name": "TC-DEL-04 Delete with invalid id format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"TC-DEL-04: Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"TC-DEL-04: Response time < 3000 ms\", function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/pet/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pet",
+                "abc"
+              ]
+            },
+            "description": "Expected: 400 Invalid ID supplied - petId must be int64 (spec)."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+== Probe 1: server behaviour for a never-existing near-int64-max id ==
+GET  /pet/9223372036854565001 -> 200 {"id":9223372036854565001,"category":{"id":0,"name":"string"},"name":"doggie","photoUrls":["string"],"tags":[{"id":0,"name":"string"}],"status":"string"}
+
+== Probe 2: DELETE works correctly when the exact id is used ==
+POST /pet -> 200, exact id from server = 9223372036854565253 (digits: 19)
+DELETE /pet/<exact id> -> 200 {"code":200,"type":"unknown","message":"9223372036854565253"}
+GET  /pet/<exact id> after delete -> 404 {"code":1,"type":"error","message":"Pet not found"}
+
+== Reference: JS Number.MAX_SAFE_INTEGER = 9007199254740991 (16 digits) ==
+==            pet ids issued by API   = 9223372036854565253 (19 digits) - NOT JS-safe ==
+
+== Summary of precision issue observed during the run ==
+TC-DEL-00 created pet id .......65121 (exact, read via Python)
+TC-DEL-01 requested delete of ..65000 (16 significant digits - Postman/JS mangled the id)
+=> the collection's DELETE did not target the pet it created; id ..65000 was a pre-existing record
+
+== Stability A: GET on never-existing id 987654321098 (5x) ==
+  1: 404 {"code":1,"type":"error","message":"Pet not found"}
+  2: 404 {"code":1,"type":"error","message":"Pet not found"}
+  3: 404 {"code":1,"type":"error","message":"Pet not found"}
+  4: 404 {"code":1,"type":"error","message":"Pet not found"}
+  5: 404 {"code":1,"type":"error","message":"Pet not found"}
+
+== Stability B: GET 9223372036854565001 (returned example data once) 5x ==
+  1: 200 {"id":9223372036854565001,"category":{"id":0,"name":"string"},"name":"doggie","photoUrls":["string"],"tags":[{
+  2: 200 {"id":9223372036854565001,"category":{"id":0,"name":"string"},"name":"doggie","photoUrls":["string"],"tags":[{
+  3: 200 {"id":9223372036854565001,"category":{"id":0,"name":"string"},"name":"doggie","photoUrls":["string"],"tags":[{
+  4: 200 {"id":9223372036854565001,"category":{"id":0,"name":"string"},"name":"doggie","photoUrls":["string"],"tags":[{
+  5: 200 {"id":9223372036854565001,"category":{"id":0,"name":"string"},"name":"doggie","photoUrls":["string"],"tags":[{
+
+== Stability C: DELETE on never-existing id 987654321098 (5x) ==
+  1: 404 
+  2: 404 
+  3: 404 
+  4: 404 
+  5: 404 
+
+== Stability D: GET /pet/findByStatus without status (6x) ==
+  1: 200 (2 B) []
+  2: 200 (2 B) []
+  3: 200 (2 B) []
+  4: 200 (2 B) []
+  5: 200 (2 B) []
+  6: 200 (2 B) []

@@ -1,0 +1,190 @@
+No authorization data found. Please use the `postman login` command.
+Refer:https://learning.postman.com/docs/postman-cli/postman-cli-options/#postman-login
+
+Running your collection...
+postman
+
+QA Take-Home Task 1 - Petstore API Test
+
+Folder 1. POST /pet - Add a new pet
+Sub-folder TC-POST-01 Create pet with valid data
+
+  POST https://petstore.swagger.io/v2/pet [200 OK, 539 B, 2.5 s]
+  Pass  TC-POST-01: Status code is 200
+  Pass  TC-POST-01: Response time < 3000 ms
+  Pass  TC-POST-01: Content-Type is application/json
+  Pass  TC-POST-01: Response contains a new numeric pet id
+  Pass  TC-POST-01: Response echoes the submitted pet data
+
+Sub-folder TC-POST-02 Create pet missing required name
+
+  POST https://petstore.swagger.io/v2/pet [200 OK, 435 B, 258 ms]
+  1. TC-POST-02: Status code is 405
+  Pass  TC-POST-02: Response time < 3000 ms
+
+Sub-folder TC-POST-03 Create pet with invalid id type
+
+  POST https://petstore.swagger.io/v2/pet [500 Server Error, 400 B, 284 ms]
+  2. TC-POST-03: Status code is 405
+  Pass  TC-POST-03: Response time < 3000 ms
+
+Sub-folder TC-POST-04 Create pet with invalid status enum
+
+  POST https://petstore.swagger.io/v2/pet [200 OK, 478 B, 283 ms]
+  3. TC-POST-04: Status code is 405
+  Pass  TC-POST-04: Response time < 3000 ms
+
+Folder 2. GET /pet/findByStatus - Find pets by status
+Sub-folder TC-GET-01 Find pets by status available
+
+  GET https://petstore.swagger.io/v2/pet/findByStatus?status=available [200 OK, 38.92 KB, 580 ms]
+  Pass  TC-GET-01: Status code is 200
+  Pass  TC-GET-01: Response time < 3000 ms
+  Pass  TC-GET-01: Content-Type is application/json
+  Pass  TC-GET-01: Response body is a non-empty JSON array
+  Pass  TC-GET-01: Every result has status 'available'
+  4. TC-GET-01: Every result has id and name
+
+Sub-folder TC-GET-02 Find pets by status pending
+
+  GET https://petstore.swagger.io/v2/pet/findByStatus?status=pending [200 OK, 4.51 KB, 339 ms]
+  Pass  TC-GET-02: Status code is 200
+  Pass  TC-GET-02: Response time < 3000 ms
+  Pass  TC-GET-02: Content-Type is application/json
+  Pass  TC-GET-02: Response body is a non-empty JSON array
+  Pass  TC-GET-02: Every result has status 'pending'
+  Pass  TC-GET-02: Every result has id and name
+
+Sub-folder TC-GET-03 Find pets by status sold
+
+  GET https://petstore.swagger.io/v2/pet/findByStatus?status=sold [200 OK, 20.56 KB, 290 ms]
+  Pass  TC-GET-03: Status code is 200
+  Pass  TC-GET-03: Response time < 3000 ms
+  Pass  TC-GET-03: Content-Type is application/json
+  Pass  TC-GET-03: Response body is a non-empty JSON array
+  Pass  TC-GET-03: Every result has status 'sold'
+  Pass  TC-GET-03: Every result has id and name
+
+Sub-folder TC-GET-04 Find pets without status parameter
+
+  GET https://petstore.swagger.io/v2/pet/findByStatus [200 OK, 328 B, 258 ms]
+  5. TC-GET-04: Status code is 400
+  Pass  TC-GET-04: Response time < 3000 ms
+
+Sub-folder TC-GET-05 Find pets with invalid status value
+
+  GET https://petstore.swagger.io/v2/pet/findByStatus?status=not-a-valid-status [200 OK, 480 B, 318 ms]
+  6. TC-GET-05: Status code is 400
+  Pass  TC-GET-05: Response time < 3000 ms
+
+Sub-folder TC-GET-06 Find pets with multiple status values
+
+  GET https://petstore.swagger.io/v2/pet/findByStatus?status=available&status=sold [200 OK, 38.92 KB, 293 ms]
+  Pass  TC-GET-06: Status code is 200
+  Pass  TC-GET-06: Response time < 3000 ms
+  Pass  TC-GET-06: Content-Type is application/json
+  Pass  TC-GET-06: Response body is a non-empty JSON array
+  Pass  TC-GET-06: Every result has status 'available' or 'sold'
+  7. TC-GET-06: Response contains both requested statuses
+
+Folder 3. DELETE /pet/{petId} - Delete a pet by ID
+Sub-folder TC-DEL-00 Setup create pet for delete tests
+
+  POST https://petstore.swagger.io/v2/pet [200 OK, 481 B, 260 ms]
+  Pass  TC-DEL-00: Status code is 200
+  Pass  TC-DEL-00: Response time < 3000 ms
+  Pass  TC-DEL-00: Setup pet created and its id stored for delete tests
+
+Sub-folder TC-DEL-01 Delete existing pet
+
+  DELETE https://petstore.swagger.io/v2/pet/9223372036854565000 [200 OK, 387 B, 277 ms]
+  Pass  TC-DEL-01: Status code is 200
+  Pass  TC-DEL-01: Response time < 3000 ms
+
+Sub-folder TC-DEL-02 Delete same pet again verify gone
+
+  DELETE https://petstore.swagger.io/v2/pet/9223372036854565000 [404 Not Found, 292 B, 260 ms]
+  Pass  TC-DEL-02: Status code is 404
+  Pass  TC-DEL-02: Response time < 3000 ms
+
+Sub-folder TC-DEL-03 Delete non-existent pet id
+
+  DELETE https://petstore.swagger.io/v2/pet/999999999 [404 Not Found, 292 B, 360 ms]
+  Pass  TC-DEL-03: Status code is 404
+  Pass  TC-DEL-03: Response time < 3000 ms
+
+Sub-folder TC-DEL-04 Delete with invalid id format
+
+  DELETE https://petstore.swagger.io/v2/pet/abc [404 Not Found, 433 B, 293 ms]
+  8. TC-DEL-04: Status code is 400
+  Pass  TC-DEL-04: Response time < 3000 ms
+
+-------------------------------------------------------------------------
+|                         |             executed |               failed |
+--------------------------+----------------------+-----------------------
+|              iterations |                    1 |                    0 |
+--------------------------+----------------------+-----------------------
+|                requests |                   15 |                    0 |
+--------------------------+----------------------+-----------------------
+|            test-scripts |                   15 |                    0 |
+--------------------------+----------------------+-----------------------
+|      prerequest-scripts |                    2 |                    0 |
+--------------------------+----------------------+-----------------------
+|              assertions |                   50 |                    8 |
+-------------------------------------------------------------------------
+| total run duration: 7.2 s                                             |
+-------------------------------------------------------------------------
+| total data received: 102.62 KB (approx)                               |
+-------------------------------------------------------------------------
+| average response time: 462 ms [min: 258 ms, max: 2.5 s, s.d.: 573 ms] |
+-------------------------------------------------------------------------
+
+  #  failure         detail                                                                                                    
+                                                                                                                               
+ 1.  AssertionError  TC-POST-02: Status code is 405                                                                            
+                     expected response to have status code 405 but got 200                                                     
+                     at assertion:0 in test-script                                                                             
+                     inside "1. POST /pet - Add a new pet / TC-POST-02 Create pet missing required name"                       
+                                                                                                                               
+ 2.  AssertionError  TC-POST-03: Status code is 405                                                                            
+                     expected response to have status code 405 but got 500                                                     
+                     at assertion:0 in test-script                                                                             
+                     inside "1. POST /pet - Add a new pet / TC-POST-03 Create pet with invalid id type"                        
+                                                                                                                               
+ 3.  AssertionError  TC-POST-04: Status code is 405                                                                            
+                     expected response to have status code 405 but got 200                                                     
+                     at assertion:0 in test-script                                                                             
+                     inside "1. POST /pet - Add a new pet / TC-POST-04 Create pet with invalid status enum"                    
+                                                                                                                               
+ 4.  AssertionError  TC-GET-01: Every result has id and name                                                                   
+                     expected { id: 98766, …(4) } to have property 'name'                                                      
+                     at assertion:5 in test-script                                                                             
+                     inside "2. GET /pet/findByStatus - Find pets by status / TC-GET-01 Find pets by status available"         
+                                                                                                                               
+ 5.  AssertionError  TC-GET-04: Status code is 400                                                                             
+                     expected response to have status code 400 but got 200                                                     
+                     at assertion:0 in test-script                                                                             
+                     inside "2. GET /pet/findByStatus - Find pets by status / TC-GET-04 Find pets without status parameter"    
+                                                                                                                               
+ 6.  AssertionError  TC-GET-05: Status code is 400                                                                             
+                     expected response to have status code 400 but got 200                                                     
+                     at assertion:0 in test-script                                                                             
+                     inside "2. GET /pet/findByStatus - Find pets by status / TC-GET-05 Find pets with invalid status value"   
+                                                                                                                               
+ 7.  AssertionError  TC-GET-06: Response contains both requested statuses                                                      
+                     expected [ 'available' ] to deeply equal [ 'available', 'sold' ]                                          
+                     at assertion:5 in test-script                                                                             
+                     inside "2. GET /pet/findByStatus - Find pets by status / TC-GET-06 Find pets with multiple status values" 
+                                                                                                                               
+ 8.  AssertionError  TC-DEL-04: Status code is 400                                                                             
+                     expected response to have status code 400 but got 404                                                     
+                     at assertion:0 in test-script                                                                             
+                     inside "3. DELETE /pet/{petId} - Delete a pet by ID / TC-DEL-04 Delete with invalid id format"            
+Postman credentials are required for publishing run details to Postman cloud.
+Please specify it by using the `postman login` command
+
+A new version of Postman CLI is available (v1.88.0). Refer https://go.pstmn.io/cli-release-notes for changelogs.
+To update your Postman CLI, run:
+
+postman update
+
